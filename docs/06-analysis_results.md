@@ -66,7 +66,7 @@ Dự án chỉ có **1 API route** duy nhất:
 
 ## 2. Library Functions (Business Logic)
 
-### [nutrition.js]
+### [nutrition.js](../src/lib/nutrition.js)
 
 | Hàm | Chức năng | Trạng thái |
 |---|---|---|
@@ -76,7 +76,7 @@ Dự án chỉ có **1 API route** duy nhất:
 | `calculateTDEE(weight, height, age, goal, targetWeight, timeframe)` | Tính TDEE theo công thức Mifflin-St Jeor, hỗ trợ calorie deficit/surplus tùy chỉnh | ✅ Hoàn thành |
 | `calculateMacros(calories, goal)` | Phân chia Protein/Carbs/Fat theo goal | ✅ Hoàn thành |
 
-### [mealPlans.js]
+### [mealPlans.js](../src/lib/mealPlans.js)
 | Hàm | Chức năng | Trạng thái |
 |---|---|---|
 | `getMealPlan(goal)` | Trả về meal plan (breakfast/lunch/dinner/snack) theo mục tiêu | ✅ Hoàn thành |
@@ -114,7 +114,7 @@ Dự án chỉ có **1 API route** duy nhất:
 
 ## 5. State Management
 
-### [AppContext.js] — React Context (Global State)
+### [AppContext.js](../src/contexts/AppContext.js) — React Context (Global State)
 
 | State/Action | Mô tả | Trạng thái |
 |---|---|---|
@@ -146,15 +146,6 @@ Dự án chỉ có **1 API route** duy nhất:
 ---
 
 ## 7. Tổng Kết
-
-```mermaid
-graph LR
-    A["/ (Login Page)"] -->|login| B["/input (2-Step Form)"]
-    B -->|POST /api/nutrition| C["API: Calculate"]
-    C -->|response| D["/dashboard (Results)"]
-    D -->|"New Calculation"| B
-    D -->|Logout| A
-```
 
 ### ✅ Đã hoàn thành:
 - **1 API route** (`POST /api/nutrition`) với đầy đủ validation và business logic
