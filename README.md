@@ -10,7 +10,7 @@ This is a Next.js application that provides AI-powered meal planning and nutriti
 ## Getting Started
 
 1. **Install dependencies:**
-   Open a terminal in this directory (`d:\Study\MSIS3033.Q21.CTTT.1\smart-nutrition-advisor`) and run:
+   Open a terminal in this directory (`smart-nutrition-advisor`) and run:
    ```bash
    npm install
    ```
