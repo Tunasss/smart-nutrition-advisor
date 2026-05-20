@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { calculateBMI, getBMICategory, calculateTDEE, calculateMacros } from "@/lib/nutrition";
-import { getMealPlan } from "@/lib/mealPlans";
+import {generateMealPlan} from "@/lib/gemini";
+
+const ALLOWED_GOALS = ["lose", "gain", "maintain"];
 
 export async function POST(request) {
   try {
@@ -14,13 +16,26 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+    if (!ALLOWED_GOALS.includes( goal )) {
+      return NextResponse.json(
+          {error: "Goal is required"},
+          {status: 400}
+      );
+    }
 
-    const ageNum = parseInt(age);
-    const weightNum = parseFloat(weight);
-    const heightNum = parseFloat(height);
-    const targetWeightNum = targetWeight ? parseFloat(targetWeight) : null;
-    const timeframeNum = timeframe ? parseInt(timeframe) : null;
+    const ageNum = Number(age);
+    const weightNum = Number(weight);
+    const heightNum = Number(height);
+    const targetWeightNum = targetWeight ? Number(targetWeight) : null;
+    const timeframeNum = timeframe ? Number(timeframe) : null;
 
+    if (
+        !Number.isFinite(ageNum) ||
+        !Number.isFinite(weightNum) ||
+        !Number.isFinite(heightNum)
+    ) {
+      return NextResponse.json({ error: "Invalid numeric input" }, { status: 400 });
+    }
     if (ageNum < 1 || ageNum > 120) {
       return NextResponse.json({ error: "Age must be between 1 and 120" }, { status: 400 });
     }
@@ -30,22 +45,25 @@ export async function POST(request) {
     if (heightNum < 50 || heightNum > 250) {
       return NextResponse.json({ error: "Height must be between 50 and 250 cm" }, { status: 400 });
     }
+    if (targetWeightNum !== null) {
+      if (!Number.isFinite(targetWeightNum) || targetWeightNum < 20 || targetWeightNum > 300) {
+        return NextResponse.json({ error: "Invalid target weight" }, { status: 400 });
+      }
+    }
 
-    // Simulate AI processing delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    if (timeframeNum !== null) {
+      if (!Number.isFinite(timeframeNum) || timeframeNum < 1 || timeframeNum > 104) {
+        return NextResponse.json({ error: "Invalid timeframe (must be 1 to 104 weeks)" }, { status: 400 });
+      }
+    }
 
     // Calculate results
     const bmi = calculateBMI(weightNum, heightNum);
     const bmiCategory = getBMICategory(bmi);
     const calories = calculateTDEE(weightNum, heightNum, ageNum, goal, targetWeightNum, timeframeNum);
     const macros = calculateMacros(calories, goal);
-    const mealPlan = getMealPlan(goal);
 
-    const goalLabels = {
-      lose: "Lose Weight",
-      gain: "Gain Weight",
-      maintain: "Maintain Weight",
-    };
+    const { mealPlan, aiMetadata } = await generateMealPlan({ goal, calories, macros})
 
     return NextResponse.json({
       bmi,
@@ -57,12 +75,13 @@ export async function POST(request) {
         age: ageNum,
         weight: weightNum,
         height: heightNum,
-        goal: goalLabels[goal] || goal,
+        goal,
         targetWeight: targetWeightNum,
         timeframe: timeframeNum,
       },
     });
   } catch (error) {
+    console.error("[Fatal API]", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
