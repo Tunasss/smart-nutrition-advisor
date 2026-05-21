@@ -100,7 +100,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login/Register Card */}
-        <div className="glass-card rounded-2xl p-8 shadow-2xl animate-slide-up stagger-2">
+        <div suppressHydrationWarning={true} className="glass-card rounded-2xl p-8 shadow-2xl animate-slide-up stagger-2">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
               {isSignUp ? "Create Account" : "Welcome Back"}

@@ -237,7 +237,7 @@ export default function InputPage() {
           </div>
 
           {/* Form Card */}
-          <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-6 sm:p-8 relative overflow-hidden min-h-[400px]">
+          <div suppressHydrationWarning={true} className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-6 sm:p-8 relative overflow-hidden min-h-[400px]">
             
             {/* Step 1 Content */}
             <div className={`transition-all duration-500 absolute w-full left-0 px-6 sm:px-8 ${step === 1 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full pointer-events-none'}`}>

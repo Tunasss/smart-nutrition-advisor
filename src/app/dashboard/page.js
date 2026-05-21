@@ -152,7 +152,7 @@ export default function DashboardPage() {
           ) : null}
 
           {/* Calculation History */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-sm mb-8 animate-fade-in">
+          <div suppressHydrationWarning={true} className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-sm mb-8 animate-fade-in">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center text-primary-600">
                 <Calendar className="w-4.5 h-4.5" />
