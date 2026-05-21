@@ -26,7 +26,7 @@ export default function CaloriesCard({ calories, goal, macros }) {
 
       <div className="mb-2">
         <span className="text-5xl font-extrabold text-gray-900">
-          {calories.toLocaleString()}
+          {calories.toLocaleString("en-US")}
         </span>
         <span className="text-lg text-gray-400 ml-1">kcal/day</span>
       </div>

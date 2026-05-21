@@ -16,7 +16,7 @@ Tài liệu này hướng dẫn chi tiết cách đăng ký, khởi tạo và c�
 ## 1. Giới Thiệu Google AI Studio
 **Google AI Studio** là một công cụ lập trình dựa trên web (web-based prototyping tool) của Google cho phép nhà phát triển thử nghiệm nhanh và lấy API Key để kết nối với các mô hình ngôn ngữ lớn thuộc họ **Gemini**.
 - **Chi phí**: Google cung cấp gói **Free Tier** (miễn phí) với giới hạn tần suất (Rate Limit) phù hợp để chạy thử nghiệm và học tập.
-- **Tương thích**: API Key tạo ra từ AI Studio có thể gọi trực tiếp các mô hình như `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-flash`,... vốn đang được tích hợp làm dự phòng trong dự án này.
+- **Tương thích**: API Key tạo ra từ AI Studio có thể gọi trực tiếp các mô hình như `gemini-3.1-flash-lite`, `gemini-3.1-flash-lite-preview`, `gemini-2.5-flash`, `gemini-1.5-flash`,... vốn đang được tích hợp trong dự án này.
 
 ---
 
@@ -113,5 +113,5 @@ Khi đã có mã khóa API (ví dụ: `AIzaSyB-xxxxx...`), hãy tích hợp nó 
 ### Lỗi 4: Lỗi `503 Service Unavailable` hoặc `UNAVAILABLE`
 - **Nguyên nhân**: Mô hình AI của Google đang bị quá tải đột xuất tại thời điểm bạn gửi yêu cầu.
 - **Khắc phục**:
-  - Dự án sở hữu cơ chế **Model Failover Pool** tự động. Khi mô hình mặc định (`gemini-2.5-flash`) bị quá tải và trả về lỗi 503, ứng dụng sẽ tự động chuyển đổi và gọi tiếp qua các mô hình dự phòng `gemini-2.0-flash` và `gemini-1.5-flash` một cách mượt mà để lấy kết quả.
+  - Dự án sở hữu cơ chế **Model Failover Pool** tự động. Khi mô hình mặc định (`gemini-3.1-flash-lite`) bị quá tải và trả về lỗi 503, ứng dụng sẽ tự động chuyển đổi và gọi tiếp qua các mô hình dự phòng `gemini-3.1-flash-lite-preview`, `gemini-2.5-flash` và `gemini-1.5-flash` một cách mượt mà để lấy kết quả.
   - Trong trường hợp xấu nhất khi tất cả các mô hình của Google đều quá tải hoặc mất mạng hoàn toàn, dự án sẽ tự động chuyển sang **Offline Fallback** (sử dụng công thức toán học nội bộ để tính chỉ số BMI, TDEE, Macros và trả về thực đơn mẫu lưu sẵn trong `src/lib/mealPlans.js`) để đảm bảo trải nghiệm người dùng không bị gián đoạn.

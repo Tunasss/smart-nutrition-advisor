@@ -74,7 +74,7 @@ Dự án được xây dựng trên nền tảng Next.js 16 (App Router) và Tai
 ## ✨ Tính Năng Nổi Bật
 
 - **Phân Tích AI Gemini**: Tư vấn lượng calo, phân bổ macronutrients (Protein/Carbs/Fat) và thực đơn 4 bữa hàng ngày cá nhân hóa cực kỳ nhanh nhờ tối ưu hóa độ dài token trong prompt.
-- **Dự Phòng 3 Tầng Mô Hình**: Tự động chuyển đổi failover xoay tua qua các đời mô hình `gemini-2.5-flash` -> `gemini-2.0-flash` -> `gemini-1.5-flash` nếu một mô hình bị quá tải (lỗi 503) hoặc chạm giới hạn.
+- **Dự Phòng Đa Tầng Mô Hình**: Tự động chuyển đổi failover xoay tua qua các đời mô hình `gemini-3.1-flash-lite` -> `gemini-3.1-flash-lite-preview` -> `gemini-2.5-flash` -> `gemini-1.5-flash` nếu một mô hình bị quá tải (lỗi 503) hoặc chạm giới hạn.
 - **Bộ Nhớ Đệm Lịch Sử (Cache)**: Trả kết quả tức thì (<50ms) nếu đo lường lặp chỉ số cũ mà không cần gọi API Google.
 - **Bảo Mật Tài Khoản**: Mã hóa mật khẩu người dùng bằng hàm băm muối `HMAC-SHA256` trước khi lưu vào file database.
 - **Giao Diện Gọn Gàng & Bắt Mắt**: Thiết kế Glassmorphism mịn màng kết hợp biểu đồ tròn phân tích dinh dưỡng sinh động và thanh loading tiệm cận mượt mà.

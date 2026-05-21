@@ -82,11 +82,12 @@ Dự án phát triển hệ thống API Backend gồm các route sau:
 
 ### 🤖 Cơ chế Dự phòng Mô hình (Model Failover Pool)
 Để giải quyết tình trạng nghẽn kết nối hoặc quá tải hệ thống từ Google (lỗi `503 Service Unavailable` hoặc `429 Rate Limit`), hệ thống tự động chạy vòng lặp dự phòng qua các mô hình:
-1. **`gemini-2.5-flash`** (Mô hình chính - tốc độ nhanh nhất, tối ưu cấu trúc JSON).
-2. **`gemini-2.0-flash`** (Dự phòng 1 - mô hình thế hệ mới ổn định, độ trễ thấp).
-3. **`gemini-1.5-flash`** (Dự phòng 2 - mô hình thế hệ cũ băng thông rộng).
+1. **`gemini-3.1-flash-lite`** (Mô hình chính - tốc độ cực nhanh, nhẹ và tối ưu chi phí hiệu quả).
+2. **`gemini-3.1-flash-lite-preview`** (Dự phòng 1 - phiên bản preview thế hệ 3.1).
+3. **`gemini-2.5-flash`** (Dự phòng 2 - mô hình thế hệ 2.5 ổn định, tối ưu cấu trúc JSON).
+4. **`gemini-1.5-flash`** (Dự phòng 3 - mô hình thế hệ cũ băng thông rộng).
 
-Nếu cả 3 mô hình AI đều lỗi hoặc không có Internet, hệ thống sẽ tự động chuyển sang chế độ **Offline Fallback** (tính toán bằng thuật toán Mifflin-St Jeor nội bộ và lấy thực đơn từ [mealPlans.js](../src/lib/mealPlans.js)).
+Nếu tất cả các mô hình AI đều lỗi hoặc không có Internet, hệ thống sẽ tự động chuyển sang chế độ **Offline Fallback** (tính toán bằng thuật toán Mifflin-St Jeor nội bộ và lấy thực đơn từ [mealPlans.js](../src/lib/mealPlans.js)).
 
 ### ⚡ Các Tối Ưu Hóa Tốc Độ API (Performance Optimizations)
 - **Rút ngắn độ dài đầu ra (Token Constraints)**: Prompt được bổ sung ràng buộc nghiêm ngặt yêu cầu mô tả món ăn dưới 15 từ và giới hạn danh sách nguyên liệu tối đa 4 món. Điều này giúp giảm số lượng token cần sinh ra, rút ngắn thời gian gọi API xuống chỉ còn **1.5s - 2.5s**.

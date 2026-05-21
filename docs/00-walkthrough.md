@@ -41,7 +41,7 @@ Toàn bộ mã nguồn chạy trên nền tảng Next.js (App Router):
 1. **Kết Nối Trực Tiếp AI Thực Tế**:
    - Sử dụng Google Gemini API để tự động sinh thực đơn và lượng calo hoàn toàn cá nhân hóa cho từng người dùng thay vì dùng dữ liệu tĩnh giả lập.
 2. **Cơ Chế Dự Phòng Mô Hình (Model Failover)**:
-   - Hệ thống tự động xoay tua gọi các mô hình `gemini-2.5-flash` -> `gemini-2.0-flash` -> `gemini-1.5-flash` nếu gặp lỗi quá tải (503) hoặc giới hạn băng thông từ phía Google.
+   - Hệ thống tự động xoay tua gọi các mô hình `gemini-3.1-flash-lite` -> `gemini-3.1-flash-lite-preview` -> `gemini-2.5-flash` -> `gemini-1.5-flash` nếu gặp lỗi quá tải (503) hoặc giới hạn băng thông từ phía Google.
 3. **Tối Ưu Hóa Tốc Độ API**:
    - Áp dụng các ràng buộc giới hạn độ dài nội dung phản hồi trong Prompt giúp giảm thời gian sinh token, đưa tốc độ gọi API xuống mức cực nhanh (1.5s - 2.5s).
    - Tích hợp bộ nhớ đệm Cache so khớp lịch sử giúp trả về kết quả lập tức (<50ms) nếu người dùng tính toán trùng lặp.
