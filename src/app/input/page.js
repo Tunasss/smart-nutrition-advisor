@@ -19,17 +19,64 @@ const goals = [
 
 export default function InputPage() {
   const router = useRouter();
-  const { isAuthenticated, formData, updateFormData, calculateNutrition, isLoading, error } = useApp();
+  const { isAuthenticated, formData, updateFormData, calculateNutrition, isLoading, error, user } = useApp();
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [step, setStep] = useState(1);
   const [localBmi, setLocalBmi] = useState(null);
+
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push("/");
     }
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    let progressInterval;
+    let messageInterval;
+    const messages = [
+      "Connecting to Gemini AI...",
+      "Analyzing your body metrics (BMI & TDEE)...",
+      "Structuring daily macronutrient distribution...",
+      "Crafting customized meal recommendations...",
+      "Matching calorie targets to meal plans...",
+      "Almost there! Generating your dashboard...",
+    ];
+
+    if (isLoading) {
+      setLoadingProgress(0);
+      setLoadingMessage(messages[0]);
+      
+      progressInterval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 98) {
+            return 98;
+          }
+          // Smooth asymptotic decay: slows down naturally as it approaches 98%
+          const remaining = 98 - prev;
+          const step = Math.max(0.08, remaining * 0.04);
+          return parseFloat((prev + step).toFixed(2));
+        });
+      }, 100);
+
+      let msgIndex = 0;
+      messageInterval = setInterval(() => {
+        msgIndex = (msgIndex + 1) % messages.length;
+        setLoadingMessage(messages[msgIndex]);
+      }, 1500);
+    } else {
+      setLoadingProgress(0);
+      setLoadingMessage("");
+    }
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(messageInterval);
+    };
+  }, [isLoading]);
 
   if (!isAuthenticated) return null;
 
@@ -178,7 +225,9 @@ export default function InputPage() {
               Step {step} of 2
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-              {step === 1 ? "Tell Us About Yourself" : "Set Your Goals"}
+              {step === 1 
+                ? (user?.name ? `Hello ${user.name}, Tell Us About Yourself` : "Tell Us About Yourself") 
+                : "Set Your Goals"}
             </h1>
             <p className="text-gray-500 text-lg max-w-md mx-auto">
               {step === 1 
@@ -352,9 +401,12 @@ export default function InputPage() {
 
                 {/* Error from API */}
                 {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    {error}
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800 flex gap-3 items-start animate-fade-in">
+                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold block">Calculation Failed</span>
+                      <span className="text-red-700">{error}</span>. Please check your connection or profile settings and try again.
+                    </div>
                   </div>
                 )}
 
@@ -394,6 +446,36 @@ export default function InputPage() {
       </main>
 
       <Footer />
+
+      {isLoading && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-gray-100 flex flex-col items-center text-center animate-scale-in">
+            <div className="relative w-20 h-20 mb-6">
+              <div className="absolute inset-0 rounded-full bg-primary-100 animate-ping opacity-75"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-gray-100 border-t-primary-500 animate-spin"></div>
+              <div className="absolute inset-2 rounded-full bg-primary-50 flex items-center justify-center text-primary-600">
+                <Activity className="w-8 h-8 animate-pulse" />
+              </div>
+            </div>
+            
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Analyzing Nutrition Data</h2>
+            <p className="text-sm text-gray-500 min-h-[40px] mb-6 px-4 transition-all duration-300">
+              {loadingMessage}
+            </p>
+
+            <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden mb-2 relative">
+              <div 
+                className="bg-gradient-to-r from-primary-500 to-primary-600 h-full rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${loadingProgress}%` }}
+              ></div>
+            </div>
+            
+            <div className="text-xs font-semibold text-primary-600">
+              {Math.round(loadingProgress)}% Complete
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

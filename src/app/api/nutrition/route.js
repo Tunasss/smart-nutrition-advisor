@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { calculateBMI, getBMICategory, calculateTDEE, calculateMacros } from "@/lib/nutrition";
 import { getMealPlan } from "@/lib/mealPlans";
+import { db } from "@/lib/db";
+import { generateAIEstimate } from "@/lib/gemini";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { age, weight, height, goal, targetWeight, timeframe } = body;
+    const { age, weight, height, goal, targetWeight, timeframe, email } = body;
 
     // Validate inputs
     if (!age || !weight || !height || !goal) {
@@ -31,41 +33,115 @@ export async function POST(request) {
       return NextResponse.json({ error: "Height must be between 50 and 250 cm" }, { status: 400 });
     }
 
-    // Simulate AI processing delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // Calculate results
-    const bmi = calculateBMI(weightNum, heightNum);
-    const bmiCategory = getBMICategory(bmi);
-    const calories = calculateTDEE(weightNum, heightNum, ageNum, goal, targetWeightNum, timeframeNum);
-    const macros = calculateMacros(calories, goal);
-    const mealPlan = getMealPlan(goal);
-
     const goalLabels = {
       lose: "Lose Weight",
       gain: "Gain Weight",
       maintain: "Maintain Weight",
     };
 
-    return NextResponse.json({
-      bmi,
-      bmiCategory,
-      calories,
-      macros,
-      mealPlan,
-      userInfo: {
-        age: ageNum,
-        weight: weightNum,
-        height: heightNum,
-        goal: goalLabels[goal] || goal,
-        targetWeight: targetWeightNum,
-        timeframe: timeframeNum,
-      },
-    });
+    let result = null;
+
+    // Check history cache to return immediately if user requests calculation with identical metrics
+    if (email) {
+      try {
+        const userHistory = db.getHistory(email);
+        const match = userHistory.find(
+          (entry) =>
+            entry.age === ageNum &&
+            entry.weight === weightNum &&
+            entry.height === heightNum &&
+            entry.goal === (goalLabels[goal] || goal) &&
+            entry.targetWeight === targetWeightNum &&
+            entry.timeframe === timeframeNum
+        );
+        if (match && match.result) {
+          console.log("Returning cached duplicate nutrition calculation");
+          return NextResponse.json(match.result);
+        }
+      } catch (cacheError) {
+        console.error("Failed to read user calculation cache:", cacheError);
+      }
+    }
+
+    try {
+      const aiResponse = await generateAIEstimate({
+        ageNum,
+        weightNum,
+        heightNum,
+        goal,
+        targetWeightNum,
+        timeframeNum,
+      });
+
+      if (aiResponse) {
+        result = {
+          ...aiResponse,
+          isAI: true,
+          userInfo: {
+            age: ageNum,
+            weight: weightNum,
+            height: heightNum,
+            goal: goalLabels[goal] || goal,
+            targetWeight: targetWeightNum,
+            timeframe: timeframeNum,
+          },
+        };
+      }
+    } catch (aiError) {
+      console.error("Failed to generate AI estimate:", aiError);
+    }
+
+    // Fallback: If result is not generated (no API key or API call failed)
+    if (!result) {
+      console.log("Using formula-based fallback calculations");
+      const bmi = calculateBMI(weightNum, heightNum);
+      const bmiCategory = getBMICategory(bmi);
+      const calories = calculateTDEE(weightNum, heightNum, ageNum, goal, targetWeightNum, timeframeNum);
+      const macros = calculateMacros(calories, goal);
+      const mealPlan = getMealPlan(goal);
+
+      result = {
+        bmi,
+        bmiCategory,
+        calories,
+        macros,
+        mealPlan,
+        isAI: false,
+        userInfo: {
+          age: ageNum,
+          weight: weightNum,
+          height: heightNum,
+          goal: goalLabels[goal] || goal,
+          targetWeight: targetWeightNum,
+          timeframe: timeframeNum,
+        },
+      };
+    }
+
+    // Save to user history if email is provided (user is logged in)
+    if (email) {
+      try {
+        db.addHistoryEntry(email, {
+          age: ageNum,
+          weight: weightNum,
+          height: heightNum,
+          goal: goalLabels[goal] || goal,
+          targetWeight: targetWeightNum,
+          timeframe: timeframeNum,
+          result,
+        });
+      } catch (dbError) {
+        console.error("Failed to save history entry in db:", dbError);
+      }
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
+    console.error("Error in nutrition calculation API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
   }
 }
+

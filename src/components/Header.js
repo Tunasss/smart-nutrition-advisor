@@ -1,10 +1,16 @@
 "use client";
 
 import { useApp } from "@/context/AppContext";
-import { Salad, LogOut, User } from "lucide-react";
+import { Salad, LogOut, User, History } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
-  const { isAuthenticated, user, logout } = useApp();
+  const { isAuthenticated, user, logout, history, setResult } = useApp();
+  const router = useRouter();
+
+  const handleHistoryClick = () => {
+    router.push("/dashboard");
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm">
@@ -27,13 +33,24 @@ export default function Header() {
 
           {/* User section */}
           {isAuthenticated && user && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* History Button */}
+              <button
+                onClick={handleHistoryClick}
+                id="history-header-btn"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
+              >
+                <History className="w-4.5 h-4.5 text-primary-600" />
+                <span>Lịch sử</span>
+              </button>
+
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary-50 rounded-full">
                 <User className="w-4 h-4 text-primary-600" />
                 <span className="text-sm font-medium text-primary-700">
                   {user.name}
                 </span>
               </div>
+
               <button
                 onClick={logout}
                 id="logout-btn"

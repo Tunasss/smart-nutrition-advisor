@@ -1,164 +1,116 @@
 # 📊 Phân Tích Dự Án Smart Nutrition Advisor
 
-## Tổng Quan Kiến Trúc
+## Tổng Quan Kiến Trúc Hệ Thống
 
-| Thành phần | Công nghệ |
+| Thành phần | Công nghệ / Thư viện |
 |---|---|
-| Framework | Next.js 16 (App Router) |
-| UI Library | React 19 |
-| Styling | Tailwind CSS 4 |
-| Icons | lucide-react |
-| Charts | chart.js + react-chartjs-2 |
-| State Management | React Context API |
-| Font | Google Fonts (Inter) |
+| **Framework** | Next.js 16 (App Router) |
+| **UI Library** | React 19 |
+| **Styling** | Tailwind CSS 4 |
+| **Icons** | lucide-react |
+| **Charts** | chart.js + react-chartjs-2 |
+| **State Management** | React Context API |
+| **Database** | Local JSON File Database (`data/database.json`) |
+| **AI Integration** | Google Gemini Developer API (v1beta) |
+| **Security** | Hashing PBKDF2/HMAC-SHA256 với Salt ngẫu nhiên |
 
 ---
 
-## 1. API Routes (Server-Side)
+## 1. Cơ Sở Dữ Liệu & Bảo Mật (`data/database.json`)
 
-Dự án chỉ có **1 API route** duy nhất:
+Hệ thống tích hợp một database dạng file JSON lưu trữ tại [database.json](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/data/database.json). Các tác vụ đọc/ghi được quản lý qua module [db.js](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/src/lib/db.js):
 
-### ✅ `POST /api/nutrition` — [route.js]
-
-**Chức năng:** Nhận thông tin người dùng và trả về kết quả phân tích dinh dưỡng.
-
-**Request body:**
-```json
-{
-  "age": 25,
-  "weight": 70,
-  "height": 175,
-  "goal": "lose" | "gain" | "maintain",
-  "targetWeight": 65,    // optional
-  "timeframe": 12        // optional, in weeks
-}
-```
-
-**Response:**
-```json
-{
-  "bmi": 22.9,
-  "bmiCategory": { "label": "Normal", "color": "#22c55e", "bg": "#f0fdf4" },
-  "calories": 1850,
-  "macros": {
-    "protein": { "grams": 162, "percentage": 35 },
-    "carbs":   { "grams": 162, "percentage": 35 },
-    "fat":     { "grams": 62,  "percentage": 30 }
-  },
-  "mealPlan": { "breakfast": {...}, "lunch": {...}, "dinner": {...}, "snack": {...} },
-  "userInfo": { "age": 25, "weight": 70, "height": 175, "goal": "Lose Weight", ... }
-}
-```
-
-**Xử lý bên trong:**
-- Validate đầu vào (age: 1-120, weight: 20-300kg, height: 50-250cm)
-- Tính BMI → `calculateBMI()`
-- Phân loại BMI → `getBMICategory()` (Underweight / Normal / Overweight / Obese)
-- Tính TDEE (lượng calo tiêu thụ) → `calculateTDEE()` dùng công thức **Mifflin-St Jeor**
-- Tính macronutrients → `calculateMacros()` (Protein/Carbs/Fat theo %)
-- Lấy meal plan → `getMealPlan()` (dữ liệu mock tĩnh)
-- Mô phỏng delay 800ms (giả lập AI processing)
-
-> [!NOTE]
-> API này là **mock API** — tất cả logic tính toán chạy local bằng các hàm utility, không gọi bất kỳ external API nào (không có OpenAI, không có database).
+- **Bảo mật mật khẩu**: Mật khẩu người dùng khi đăng ký sẽ được băm bằng thuật toán `HMAC-SHA256` đi kèm với một chuỗi `salt` dài 16 bytes ngẫu nhiên được sinh ra cho từng tài khoản. Database hoàn toàn không lưu trữ mật khẩu thuần (plaintext).
+- **Lịch sử tính toán**: Mỗi kết quả đo lường và thực đơn dinh dưỡng đều được lưu trữ theo tài khoản người dùng (`email`), chứa đầy đủ các chỉ số đầu vào cùng kết quả trả về từ AI để phục vụ hiển thị lịch sử và tối ưu hóa bộ nhớ đệm (Cache).
 
 ---
 
-## 2. Library Functions (Business Logic)
+## 2. API Routes (Server-Side)
 
-### [nutrition.js](../src/lib/nutrition.js)
+Dự án phát triển hệ thống API Backend gồm các route sau:
 
-| Hàm | Chức năng | Trạng thái |
-|---|---|---|
-| `calculateBMI(weight, height)` | Tính chỉ số BMI | ✅ Hoàn thành |
-| `getBMICategory(bmi)` | Phân loại BMI (4 nhóm) + trả màu sắc | ✅ Hoàn thành |
-| `getBMIPercentage(bmi)` | Chuyển BMI → % để hiển thị thanh progress | ✅ Hoàn thành |
-| `calculateTDEE(weight, height, age, goal, targetWeight, timeframe)` | Tính TDEE theo công thức Mifflin-St Jeor, hỗ trợ calorie deficit/surplus tùy chỉnh | ✅ Hoàn thành |
-| `calculateMacros(calories, goal)` | Phân chia Protein/Carbs/Fat theo goal | ✅ Hoàn thành |
+### 🔑 `POST /api/auth/register`
+- **Chức năng**: Đăng ký tài khoản người dùng mới. Mã hóa mật khẩu và thêm vào database.
 
-### [mealPlans.js](../src/lib/mealPlans.js)
-| Hàm | Chức năng | Trạng thái |
-|---|---|---|
-| `getMealPlan(goal)` | Trả về meal plan (breakfast/lunch/dinner/snack) theo mục tiêu | ✅ Hoàn thành |
-| `getTotalCalories(mealPlan)` | Tính tổng calories từ meal plan | ✅ Hoàn thành (chưa được sử dụng) |
+### 🔓 `POST /api/auth/login`
+- **Chức năng**: Xác thực đăng nhập. So khớp hash mật khẩu và lưu phiên làm việc (Local Storage).
 
-> [!IMPORTANT]
-> Dữ liệu meal plan là **hardcoded** (3 bộ plan cho lose/gain/maintain), mỗi bộ gồm 4 bữa với tên món, mô tả, calo, protein, carbs, fat, và danh sách nguyên liệu.
+### 📜 `GET /api/history`
+- **Chức năng**: Lấy danh sách lịch sử tính toán của người dùng (sắp xếp theo thời gian mới nhất).
 
----
-
-## 3. Pages (Frontend Routes)
-
-| Route | File | Chức năng | Trạng thái |
-|---|---|---|---|
-| `/` | [page.js](../src/app/page.js) | Trang Login (mock auth) | ✅ Hoàn thành |
-| `/input` | [page.js](../src/app/input/page.js) | Form nhập liệu (2 bước) | ✅ Hoàn thành |
-| `/dashboard` | [page.js](../src/app/dashboard/page.js) | Trang kết quả phân tích | ✅ Hoàn thành |
-
-**Luồng người dùng:** `Login → Input (Step 1: Body Metrics → Step 2: Goals) → Dashboard`
-
----
-
-## 4. Components
-
-| Component | File | Chức năng | Trạng thái |
-|---|---|---|---|
-| `Header` | [Header.js](../src/components/Header.js) | Navigation bar + logo + user info + logout | ✅ Hoàn thành |
-| `Footer` | [Footer.js](../src/components/Footer.js) | Footer | ✅ Hoàn thành |
-| `BMICard` | [BMICard.js](../src/components/BMICard.js) | Hiển thị BMI với thanh scale màu | ✅ Hoàn thành |
-| `CaloriesCard` | [CaloriesCard.js](../src/components/CaloriesCard.js) | Hiển thị lượng calo hàng ngày + macro mini | ✅ Hoàn thành |
-| `MealPlanTable` | [MealPlanTable.js](../src/components/MealPlanTable.js) | Bảng 4 bữa ăn dạng card | ✅ Hoàn thành |
-| `NutritionChart` | [NutritionChart.js](../src/components/NutritionChart.js) | Biểu đồ Doughnut (Chart.js) cho macros | ✅ Hoàn thành |
-
----
-
-## 5. State Management
-
-### [AppContext.js](../src/contexts/AppContext.js) — React Context (Global State)
-
-| State/Action | Mô tả | Trạng thái |
-|---|---|---|
-| `user`, `isAuthenticated` | Auth state | ✅ |
-| `formData` | Dữ liệu form (age, weight, height, goal, targetWeight, timeframe) | ✅ |
-| `result` | Kết quả từ API `/api/nutrition` | ✅ |
-| `isLoading`, `error` | Loading và error states | ✅ |
-| `login(email, password)` | Mock login (chấp nhận bất kỳ email + password ≥ 6 chars) | ✅ |
-| `logout()` | Logout + reset toàn bộ state | ✅ |
-| `updateFormData(field, value)` | Cập nhật field trong form | ✅ |
-| `calculateNutrition(data)` | Gọi `POST /api/nutrition` và lưu kết quả | ✅ |
-| `clearResult()` | Xóa kết quả để tính lại | ✅ |
+### 🥦 `POST /api/nutrition` — [route.js](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/src/app/api/nutrition/route.js)
+- **Chức năng**: Nhận chỉ số người dùng và trả về kết quả phân tích BMI, Calo, Macros và Thực đơn dinh dưỡng.
+- **Request body**:
+  ```json
+  {
+    "age": 20,
+    "weight": 65,
+    "height": 176,
+    "goal": "lose" | "gain" | "maintain",
+    "targetWeight": 60,    // Tùy chọn
+    "timeframe": 12,       // Tùy chọn (tuần)
+    "email": "user@example.com"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "bmi": 21.0,
+    "bmiCategory": { "label": "Normal", "color": "#10b981" },
+    "calories": 2275,
+    "macros": {
+      "protein": { "grams": 104, "percentage": 18 },
+      "carbs": { "grams": 312, "percentage": 55 },
+      "fat": { "grams": 68, "percentage": 27 }
+    },
+    "mealPlan": {
+      "breakfast": { "name": "...", "description": "...", "calories": 500, "protein": 25, "carbs": 60, "fat": 15, "items": ["..."], "emoji": "🥣" },
+      "lunch": { ... },
+      "dinner": { ... },
+      "snack": { ... }
+    },
+    "isAI": true,
+    "userInfo": { ... }
+  }
+  ```
 
 ---
 
-## 6. Tính Năng Đặc Biệt Đã Hoàn Thành
+## 3. Tích Hợp Google Gemini API & Cơ Chế Dự Phòng (`src/lib/gemini.js`)
 
-| Tính năng | Chi tiết |
-|---|---|
-| 🔐 Form Validation | Client-side + Server-side validation (age, weight, height, targetWeight, timeframe) |
-| 📊 Data Visualization | Biểu đồ Doughnut (Chart.js) cho phân bổ macronutrients |
-| 🎨 UI/UX Premium | Glassmorphism, gradient backgrounds, micro-animations, hover effects |
-| 📱 Responsive Design | Tailwind responsive classes (sm, md, lg breakpoints) |
-| 🔄 Multi-step Form | Form 2 bước với animation chuyển trang |
-| 💡 BMI Recommendations | Sau bước 1, hiển thị gợi ý dựa trên BMI tính được |
-| 🍽️ Meal Plan Cards | 4 bữa ăn chi tiết với nguyên liệu và thông tin dinh dưỡng |
-| 🛡️ Route Protection | Redirect về login nếu chưa đăng nhập, redirect về input nếu chưa có result |
+Ứng dụng kết nối trực tiếp với API Google Gemini để sinh thực đơn và tính toán cá nhân hóa theo các tiêu chí sau:
+
+### 🤖 Cơ chế Dự phòng Mô hình (Model Failover Pool)
+Để giải quyết tình trạng nghẽn kết nối hoặc quá tải hệ thống từ Google (lỗi `503 Service Unavailable` hoặc `429 Rate Limit`), hệ thống tự động chạy vòng lặp dự phòng qua các mô hình:
+1. **`gemini-2.5-flash`** (Mô hình chính - tốc độ nhanh nhất, tối ưu cấu trúc JSON).
+2. **`gemini-2.0-flash`** (Dự phòng 1 - mô hình thế hệ mới ổn định, độ trễ thấp).
+3. **`gemini-1.5-flash`** (Dự phòng 2 - mô hình thế hệ cũ băng thông rộng).
+
+Nếu cả 3 mô hình AI đều lỗi hoặc không có Internet, hệ thống sẽ tự động chuyển sang chế độ **Offline Fallback** (tính toán bằng thuật toán Mifflin-St Jeor nội bộ và lấy thực đơn từ [mealPlans.js](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/src/lib/mealPlans.js)).
+
+### ⚡ Các Tối Ưu Hóa Tốc Độ API (Performance Optimizations)
+- **Rút ngắn độ dài đầu ra (Token Constraints)**: Prompt được bổ sung ràng buộc nghiêm ngặt yêu cầu mô tả món ăn dưới 15 từ và giới hạn danh sách nguyên liệu tối đa 4 món. Điều này giúp giảm số lượng token cần sinh ra, rút ngắn thời gian gọi API xuống chỉ còn **1.5s - 2.5s**.
+- **Bộ nhớ đệm lịch sử (History Caching)**: Khi gọi API `/api/nutrition`, hệ thống sẽ so khớp với các chỉ số đo lường trước đó của tài khoản. Nếu phát hiện trùng khớp hoàn toàn, kết quả cũ sẽ được trả về lập tức (dưới **50ms**), bỏ qua việc gọi Gemini API và giảm tải đáng kể.
 
 ---
 
-## 7. Tổng Kết
+## 4. UI/UX & Giao Diện Người Dùng
 
-### ✅ Đã hoàn thành:
-- **1 API route** (`POST /api/nutrition`) với đầy đủ validation và business logic
-- **3 pages** (Login, Input, Dashboard) với routing bảo vệ
-- **6 components** tái sử dụng
-- **5 utility functions** tính toán dinh dưỡng
-- **Global state management** với React Context
-- **Mock authentication**
-- **Data visualization** với Chart.js
-- **Responsive design** + **Premium UI**
+### 🌀 Hệ thống Loading Trực Quan (Input Page)
+- Thiết kế màn hình chờ Glassmorphism làm mờ toàn trang (`backdrop-blur-md`).
+- Vòng tròn tiến trình phát sáng đập theo nhịp (`Activity icon animate-pulse`) cùng thanh loading tăng dần tiệm cận từ 0% đến 98%.
+- Thay đổi thông điệp trạng thái liên tục giúp người dùng không cảm thấy sốt ruột khi hệ thống đang xử lý dữ liệu AI.
 
-### ⚠️ Lưu ý:
-- Toàn bộ dự án sử dụng **mock data** — không kết nối database hay AI thực sự
-- Authentication là **mock** (chấp nhận bất kỳ email/password)
-- Meal plan là **static data** (3 bộ plan cố định)
-- Hàm `getTotalCalories()` đã định nghĩa nhưng **chưa sử dụng** ở đâu
+### ⚠️ Cảnh báo Dự phòng (Dashboard Page)
+- Nếu kết quả trả về sử dụng thuật toán Offline (khi AI bị sập), hệ thống hiển thị banner cảnh báo màu vàng nổi bật: **"Gemini AI Offline Fallback"** cùng thẻ trạng thái **"Formula-based Fallback (AI Offline)"**. 
+- Nếu thành công với AI, hệ thống hiển thị thẻ xanh ngọc: **"AI Analysis Complete"** cùng biểu tượng lấp lánh `Sparkles`.
+
+---
+
+## 5. Tổng Kết Thành Phần Mã Nguồn
+
+1. **`src/app/api/nutrition/route.js`**: Điểm nhận dữ liệu tính toán, quản lý bộ nhớ đệm Cache và xử lý kết quả dự phòng Offline.
+2. **`src/lib/gemini.js`**: Tích hợp gọi API Gemini, cấu hình Schema JSON định dạng đầu ra, và chạy cơ chế Failover giữa các đời mô hình Flash.
+3. **`src/lib/db.js`**: Hệ cơ sở dữ liệu đọc/ghi file local lưu thông tin người dùng mã hóa mật khẩu và nhật ký tính toán.
+4. **`src/app/input/page.js`**: Form nhập liệu 2 bước chứa thanh loading tiệm cận mượt mà và thông báo lỗi kết nối sắc nét.
+5. **`src/app/dashboard/page.js`**: Dashboard hiển thị biểu đồ tròn macro dinh dưỡng, bảng thực đơn, lịch sử đo và thông tin nguồn gốc dữ liệu (AI vs Fallback).

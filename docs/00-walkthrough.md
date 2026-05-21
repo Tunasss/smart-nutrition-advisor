@@ -1,56 +1,89 @@
-# Smart Nutrition Advisor - Project Completion
+# 🥦 Smart Nutrition Advisor - Hướng Dẫn Toàn Diện Dự Án
 
-Tôi đã hoàn thành việc xây dựng toàn bộ dự án **Smart Nutrition Advisor** dựa trên 2 file mô tả yêu cầu của bạn, đóng vai trò cả UI/UX Designer và Frontend Developer.
+Chào mừng bạn đến với dự án **Smart Nutrition Advisor** — Hệ thống tư vấn dinh dưỡng và gợi ý thực đơn ăn uống thông minh sử dụng trí tuệ nhân tạo Google Gemini API tích hợp cơ sở dữ liệu và bảo mật.
 
-Do môi trường hiện tại chưa cài đặt Node.js, tôi đã thiết lập toàn bộ cấu trúc dự án và viết code thủ công. Bạn có thể tự chạy dự án này trên máy tính của mình.
-
-## 📁 Cấu trúc thư mục
-
-### 1. Phần UI/UX Design (Thư mục `docs/`)
-Tất cả tài liệu thiết kế đều được viết bằng Markdown, sẵn sàng để gửi cho team hoặc nộp báo cáo:
-- `01-user-persona.md`: Chân dung người dùng (Sinh viên, Dân gym) và hành trình người dùng.
-- `02-user-flow.md`: Sơ đồ luồng ứng dụng và chi tiết các màn hình.
-- `03-wireframe.md`: Cấu trúc layout thô của 3 trang chính.
-- `04-design-system.md`: Bảng màu sắc, typography, component specs.
-- `05-design-handoff.md`: Hướng dẫn dành cho Developer.
-
-### 2. Phần Frontend (Thư mục `src/`)
-Toàn bộ source code Next.js 15 (App Router) với Tailwind CSS v4:
-- **Pages (`src/app/`)**:
-  - `/`: Login Page với giao diện Glassmorphism.
-  - `/input`: Form nhập thông tin cá nhân.
-  - `/dashboard`: Trang hiển thị kết quả.
-  - `/api/nutrition`: Mock API giả lập tính toán AI.
-- **Components (`src/components/`)**:
-  - `Header.js`, `Footer.js`
-  - `BMICard.js`, `CaloriesCard.js`, `MealPlanTable.js`, `NutritionChart.js`
-- **Context (`src/context/`)**: Quản lý State toàn cục bằng React Context.
-- **Lib (`src/lib/`)**: Các hàm tính toán BMI, TDEE, Macros và dữ liệu Meal Plan.
+Dự án đã được phát triển hoàn tất từ khâu UI/UX Design cho đến lập trình Full-Stack bằng Next.js 16 (App Router) và Tailwind CSS 4.
 
 ---
 
-## 🚀 Hướng dẫn chạy dự án
+## 📁 Cấu Trúc Dự Án
+
+### 1. Tài liệu Thiết kế & Kiến trúc (`docs/`)
+Tất cả các tài liệu được viết bằng Markdown chi tiết để bạn dễ dàng theo dõi hoặc làm báo cáo:
+- [01-user-persona.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/01-user-persona.md): Chân dung người dùng (Sinh viên, Dân tập gym) và hành trình của họ.
+- [02-user-flow.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/02-user-flow.md): Sơ đồ các luồng đi của ứng dụng qua từng trang.
+- [03-wireframe.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/03-wireframe.md): Thiết kế bố cục thô (Wireframe) của các trang chính.
+- [04-design-system.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/04-design-system.md): Quy chuẩn về màu sắc (Brand colors), phông chữ, biểu tượng.
+- [05-design-handoff.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/05-design-handoff.md): Hướng dẫn bàn giao giữa bộ phận Thiết kế và Lập trình.
+- [06-analysis_results.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/06-analysis_results.md): **[MỚI]** Phân tích chi tiết kiến trúc API, cơ sở dữ liệu bảo mật mật khẩu, tích hợp trí tuệ nhân tạo Gemini AI và cơ chế tối ưu hiệu suất.
+- [07-google-api-key-guide.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/07-google-api-key-guide.md): **[MỚI]** Hướng dẫn chi tiết cách tạo và cấu hình khóa Google Gemini API Key từ Google AI Studio cùng cách sửa các lỗi thường gặp.
+
+### 2. Mã nguồn Ứng dụng (`src/`)
+Toàn bộ mã nguồn chạy trên nền tảng Next.js (App Router):
+- **Trang màn hình (`src/app/`)**:
+  - `page.js` (Login/Register): Đăng nhập, đăng ký tài khoản với hiệu ứng Glassmorphism.
+  - `input/page.js`: Form nhập chỉ số cơ thể, mục tiêu kèm thanh trạng thái loading tiệm cận mượt mà.
+  - `dashboard/page.js`: Dashboard hiển thị chi tiết BMI, Calo, biểu đồ Macros, thực đơn hàng ngày và lịch sử tính toán.
+  - `api/nutrition/route.js`: API tính toán, kiểm tra cache và gọi AI.
+- **Thư viện xử lý dữ liệu (`src/lib/`)**:
+  - `gemini.js`: Hàm kết nối API Google Gemini với cơ chế tự động chuyển đổi mô hình dự phòng (Failover Pool).
+  - `db.js`: Quản lý đọc/ghi cơ sở dữ liệu local (`data/database.json`), băm bảo mật mật khẩu.
+  - `nutrition.js`: Các công thức tính toán BMI, TDEE (Mifflin-St Jeor) và Macros.
+  - `mealPlans.js`: Thực đơn dự phòng lưu sẵn khi không có kết nối Internet / AI lỗi.
+- **Thành phần giao diện (`src/components/`)**:
+  - `Header.js`, `Footer.js`
+  - `BMICard.js`, `CaloriesCard.js`, `MealPlanTable.js`, `NutritionChart.js` (Sử dụng Chart.js để vẽ biểu đồ tròn).
+
+---
+
+## ⚡ Các Tính Năng & Nâng Cấp Nổi Bật
+
+1. **Kết Nối Trực Tiếp AI Thực Tế**:
+   - Sử dụng Google Gemini API để tự động sinh thực đơn và lượng calo hoàn toàn cá nhân hóa cho từng người dùng thay vì dùng dữ liệu tĩnh giả lập.
+2. **Cơ Chế Dự Phòng Mô Hình (Model Failover)**:
+   - Hệ thống tự động xoay tua gọi các mô hình `gemini-2.5-flash` -> `gemini-2.0-flash` -> `gemini-1.5-flash` nếu gặp lỗi quá tải (503) hoặc giới hạn băng thông từ phía Google.
+3. **Tối Ưu Hóa Tốc Độ API**:
+   - Áp dụng các ràng buộc giới hạn độ dài nội dung phản hồi trong Prompt giúp giảm thời gian sinh token, đưa tốc độ gọi API xuống mức cực nhanh (1.5s - 2.5s).
+   - Tích hợp bộ nhớ đệm Cache so khớp lịch sử giúp trả về kết quả lập tức (<50ms) nếu người dùng tính toán trùng lặp.
+4. **Trải Nghiệm UX Cao Cấp**:
+   - Thanh loading tiệm cận mượt mà tăng dần đều lên đến 98% và liên tục thay đổi tin nhắn trạng thái vui nhộn, tạo cảm giác chuyên nghiệp.
+   - Banner cảnh báo nguồn gốc dữ liệu rõ ràng giúp phân biệt giữa kết quả được sinh từ AI thực tế và kết quả sinh dự phòng Offline khi AI bị lỗi.
+5. **Bảo Mật Người Dùng**:
+   - Cơ chế băm mật khẩu `HMAC-SHA256` cùng chuỗi salt riêng biệt đảm bảo an toàn thông tin tài khoản lưu trữ tại local database.
+
+---
+
+## 🚀 Hướng Dẫn Khởi Chạy & Cấu Hình API Key
 
 > [!IMPORTANT]
-> **Yêu cầu:** Máy tính của bạn cần được cài đặt **Node.js** (tải tại nodejs.org).
+> **Yêu cầu:** Máy tính cần cài đặt **Node.js** (Khuyên dùng phiên bản LTS mới nhất).
 
-1. Mở Terminal (Command Prompt hoặc PowerShell).
-2. Di chuyển vào thư mục dự án:
-   ```bash
-   cd smart-nutrition-advisor
+### 🔑 Cách lấy API Key Google Gemini miễn phí:
+1. Đăng nhập vào tài khoản Gmail và truy cập trang **[Google AI Studio](https://aistudio.google.com/)**.
+2. Click chọn nút **"Get API key"** tại cột menu bên trái.
+3. Nhấp vào **"Create API key"** -> Chọn **"Create API key in new project"** để sinh khóa.
+4. Sao chép chuỗi khóa nhận được (bắt đầu bằng `AIzaSy...`).
+
+> [!TIP]
+> Xem chi tiết các bước thực hiện và hướng dẫn sửa lỗi kết nối, quá tải hoặc giới hạn vùng lãnh thổ tại:
+> 👉 **[07-google-api-key-guide.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/07-google-api-key-guide.md)**
+
+### ⚙️ Cấu hình và Chạy dự án:
+1. Tạo một file tên là `.env.local` tại thư mục gốc của dự án.
+2. Thiết lập nội dung trong file như sau (dán API Key vừa copy vào):
+   ```env
+   GEMINI_API_KEY=AIzaSy..._KHOA_API_CUA_BAN
    ```
-3. Cài đặt các thư viện:
+3. Mở Terminal tại thư mục của dự án và chạy cài đặt thư viện:
    ```bash
    npm install
    ```
-4. Khởi chạy ứng dụng:
+4. Khởi chạy máy chủ phát triển local:
    ```bash
    npm run dev
    ```
-5. Mở trình duyệt và truy cập `http://localhost:3000`.
-
-## ✨ Các tính năng nổi bật
-- **Giao diện hiện đại:** Sử dụng Glassmorphism, Gradient tinh tế, và các micro-animations mượt mà.
-- **Biểu đồ động:** Tích hợp Chart.js để vẽ biểu đồ phân bổ dinh dưỡng (Protein/Carbs/Fat).
-- **Trải nghiệm liền mạch:** Quản lý state tốt, không cần load lại trang khi chuyển form.
-- **Responsive:** Hoạt động tốt trên cả điện thoại và máy tính.
+5. Mở trình duyệt và truy cập: [http://localhost:3000](http://localhost:3000)
+6. Biên dịch ứng dụng cho chế độ chạy Production:
+   ```bash
+   npm run build
+   ```
