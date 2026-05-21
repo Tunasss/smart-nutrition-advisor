@@ -10,13 +10,13 @@ Dự án đã được phát triển hoàn tất từ khâu UI/UX Design cho đ�
 
 ### 1. Tài liệu Thiết kế & Kiến trúc (`docs/`)
 Tất cả các tài liệu được viết bằng Markdown chi tiết để bạn dễ dàng theo dõi hoặc làm báo cáo:
-- [01-user-persona.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/01-user-persona.md): Chân dung người dùng (Sinh viên, Dân tập gym) và hành trình của họ.
-- [02-user-flow.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/02-user-flow.md): Sơ đồ các luồng đi của ứng dụng qua từng trang.
-- [03-wireframe.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/03-wireframe.md): Thiết kế bố cục thô (Wireframe) của các trang chính.
-- [04-design-system.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/04-design-system.md): Quy chuẩn về màu sắc (Brand colors), phông chữ, biểu tượng.
-- [05-design-handoff.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/05-design-handoff.md): Hướng dẫn bàn giao giữa bộ phận Thiết kế và Lập trình.
-- [06-analysis_results.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/06-analysis_results.md): **[MỚI]** Phân tích chi tiết kiến trúc API, cơ sở dữ liệu bảo mật mật khẩu, tích hợp trí tuệ nhân tạo Gemini AI và cơ chế tối ưu hiệu suất.
-- [07-google-api-key-guide.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/07-google-api-key-guide.md): **[MỚI]** Hướng dẫn chi tiết cách tạo và cấu hình khóa Google Gemini API Key từ Google AI Studio cùng cách sửa các lỗi thường gặp.
+- [01-user-persona.md](./01-user-persona.md): Chân dung người dùng (Sinh viên, Dân tập gym) và hành trình của họ.
+- [02-user-flow.md](./02-user-flow.md): Sơ đồ các luồng đi của ứng dụng qua từng trang.
+- [03-wireframe.md](./03-wireframe.md): Thiết kế bố cục thô (Wireframe) của các trang chính.
+- [04-design-system.md](./04-design-system.md): Quy chuẩn về màu sắc (Brand colors), phông chữ, biểu tượng.
+- [05-design-handoff.md](./05-design-handoff.md): Hướng dẫn bàn giao giữa bộ phận Thiết kế và Lập trình.
+- [06-analysis_results.md](./06-analysis_results.md): **[MỚI]** Phân tích chi tiết kiến trúc API, cơ sở dữ liệu bảo mật mật khẩu, tích hợp trí tuệ nhân tạo Gemini AI và cơ chế tối ưu hiệu suất.
+- [07-google-api-key-guide.md](./07-google-api-key-guide.md): **[MỚI]** Hướng dẫn chi tiết cách tạo và cấu hình khóa Google Gemini API Key từ Google AI Studio cùng cách sửa các lỗi thường gặp.
 
 ### 2. Mã nguồn Ứng dụng (`src/`)
 Toàn bộ mã nguồn chạy trên nền tảng Next.js (App Router):
@@ -66,7 +66,7 @@ Toàn bộ mã nguồn chạy trên nền tảng Next.js (App Router):
 
 > [!TIP]
 > Xem chi tiết các bước thực hiện và hướng dẫn sửa lỗi kết nối, quá tải hoặc giới hạn vùng lãnh thổ tại:
-> 👉 **[07-google-api-key-guide.md](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/07-google-api-key-guide.md)**
+> 👉 **[07-google-api-key-guide.md](./07-google-api-key-guide.md)**
 
 ### ⚙️ Cấu hình và Chạy dự án:
 1. Tạo một file tên là `.env.local` tại thư mục gốc của dự án.

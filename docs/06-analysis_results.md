@@ -18,7 +18,7 @@
 
 ## 1. Cơ Sở Dữ Liệu & Bảo Mật (`data/database.json`)
 
-Hệ thống tích hợp một database dạng file JSON lưu trữ tại [database.json](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/data/database.json). Các tác vụ đọc/ghi được quản lý qua module [db.js](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/src/lib/db.js):
+Hệ thống tích hợp một database dạng file JSON lưu trữ tại [database.json](../data/database.json). Các tác vụ đọc/ghi được quản lý qua module [db.js](../src/lib/db.js):
 
 - **Bảo mật mật khẩu**: Mật khẩu người dùng khi đăng ký sẽ được băm bằng thuật toán `HMAC-SHA256` đi kèm với một chuỗi `salt` dài 16 bytes ngẫu nhiên được sinh ra cho từng tài khoản. Database hoàn toàn không lưu trữ mật khẩu thuần (plaintext).
 - **Lịch sử tính toán**: Mỗi kết quả đo lường và thực đơn dinh dưỡng đều được lưu trữ theo tài khoản người dùng (`email`), chứa đầy đủ các chỉ số đầu vào cùng kết quả trả về từ AI để phục vụ hiển thị lịch sử và tối ưu hóa bộ nhớ đệm (Cache).
@@ -38,7 +38,7 @@ Dự án phát triển hệ thống API Backend gồm các route sau:
 ### 📜 `GET /api/history`
 - **Chức năng**: Lấy danh sách lịch sử tính toán của người dùng (sắp xếp theo thời gian mới nhất).
 
-### 🥦 `POST /api/nutrition` — [route.js](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/src/app/api/nutrition/route.js)
+### 🥦 `POST /api/nutrition` — [route.js](../src/app/api/nutrition/route.js)
 - **Chức năng**: Nhận chỉ số người dùng và trả về kết quả phân tích BMI, Calo, Macros và Thực đơn dinh dưỡng.
 - **Request body**:
   ```json
@@ -86,7 +86,7 @@ Dự án phát triển hệ thống API Backend gồm các route sau:
 2. **`gemini-2.0-flash`** (Dự phòng 1 - mô hình thế hệ mới ổn định, độ trễ thấp).
 3. **`gemini-1.5-flash`** (Dự phòng 2 - mô hình thế hệ cũ băng thông rộng).
 
-Nếu cả 3 mô hình AI đều lỗi hoặc không có Internet, hệ thống sẽ tự động chuyển sang chế độ **Offline Fallback** (tính toán bằng thuật toán Mifflin-St Jeor nội bộ và lấy thực đơn từ [mealPlans.js](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/src/lib/mealPlans.js)).
+Nếu cả 3 mô hình AI đều lỗi hoặc không có Internet, hệ thống sẽ tự động chuyển sang chế độ **Offline Fallback** (tính toán bằng thuật toán Mifflin-St Jeor nội bộ và lấy thực đơn từ [mealPlans.js](../src/lib/mealPlans.js)).
 
 ### ⚡ Các Tối Ưu Hóa Tốc Độ API (Performance Optimizations)
 - **Rút ngắn độ dài đầu ra (Token Constraints)**: Prompt được bổ sung ràng buộc nghiêm ngặt yêu cầu mô tả món ăn dưới 15 từ và giới hạn danh sách nguyên liệu tối đa 4 món. Điều này giúp giảm số lượng token cần sinh ra, rút ngắn thời gian gọi API xuống chỉ còn **1.5s - 2.5s**.

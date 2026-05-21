@@ -27,7 +27,7 @@ Dự án được xây dựng trên nền tảng Next.js 16 (App Router) và Tai
 
 > [!TIP]
 > Xem hướng dẫn đầy đủ, chi tiết từng bước bằng hình ảnh và cách xử lý khi gặp lỗi (lỗi vùng lãnh thổ, lỗi quá tải, rate limit) tại:
-> 👉 **[Tài liệu hướng dẫn tạo Google Gemini API Key](file:///d:/Study/MSIS3033.Q21.CTTT.1/smart-nutrition-advisor/docs/07-google-api-key-guide.md)**
+> 👉 **[Tài liệu hướng dẫn tạo Google Gemini API Key](docs/07-google-api-key-guide.md)**
 
 
 ---
