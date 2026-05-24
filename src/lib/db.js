@@ -6,16 +6,20 @@ import { kv } from "@vercel/kv";
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIR, "database.json");
 
+const isVercel = !!process.env.VERCEL;
 const isKvMode = !!process.env.KV_REST_API_URL;
 
 if (isKvMode) {
   console.log("Database initialized in Vercel KV mode.");
+} else if (isVercel) {
+  console.warn("Database running on Vercel but KV is not connected yet. Running in safe fallback mode.");
 } else {
   console.log("Database initialized in local JSON file mode.");
 }
 
 // Initialize database file if it doesn't exist (Only used in local JSON file mode)
 function initDb() {
+  if (isVercel) return; // Safeguard
   if (!fs.existsSync(DB_DIR)) {
     fs.mkdirSync(DB_DIR, { recursive: true });
   }
@@ -30,6 +34,7 @@ function initDb() {
 
 // Read database
 function readDb() {
+  if (isVercel) return { users: [], history: [] }; // Safeguard
   initDb();
   try {
     const data = fs.readFileSync(DB_PATH, "utf-8");
@@ -46,6 +51,7 @@ function readDb() {
 
 // Write database
 function writeDb(data) {
+  if (isVercel) return; // Safeguard
   initDb();
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
 }
@@ -67,6 +73,11 @@ export const db = {
         console.error("Failed to find user from Vercel KV:", error);
         return null;
       }
+    }
+    
+    if (isVercel) {
+      console.warn("Vercel KV is not configured. findUserByEmail returning null.");
+      return null;
     }
     
     const { users } = readDb();
@@ -96,6 +107,10 @@ export const db = {
       await kv.set(`user:${normalizedEmail}`, newUser);
       const { passwordHash: _, salt: __, ...userResponse } = newUser;
       return userResponse;
+    }
+
+    if (isVercel) {
+      throw new Error("Cơ sở dữ liệu Vercel KV chưa được kết nối. Vui lòng kích hoạt trong tab Storage của dự án trên Vercel.");
     }
 
     const database = readDb();
@@ -157,6 +172,11 @@ export const db = {
       }
     }
 
+    if (isVercel) {
+      console.warn("Vercel KV is not configured. addHistoryEntry returning without saving.");
+      return newEntry;
+    }
+
     const database = readDb();
     database.history.push(newEntry);
     writeDb(database);
@@ -173,6 +193,11 @@ export const db = {
         console.error("Failed to get history from Vercel KV:", error);
         return [];
       }
+    }
+
+    if (isVercel) {
+      console.warn("Vercel KV is not configured. getHistory returning empty array.");
+      return [];
     }
 
     const { history } = readDb();
