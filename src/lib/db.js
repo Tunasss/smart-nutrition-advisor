@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { createClient } from "@vercel/kv";
+import Redis from "ioredis";
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIR, "database.json");
@@ -11,18 +12,29 @@ const isVercel = !!process.env.VERCEL;
 // Support Vercel KV, Upstash Redis Integration, and direct Upstash credentials
 const restUrl = process.env.KV_REST_API_URL || process.env.REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL;
 const restToken = process.env.KV_REST_API_TOKEN || process.env.REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+const tcpUrl = process.env.REDIS_URL;
 
 const isKvMode = !!restUrl && !!restToken;
+const isTcpMode = !isKvMode && !!tcpUrl;
 
 let kv = null;
+let redis = null;
+
 if (isKvMode) {
   kv = createClient({
     url: restUrl,
     token: restToken,
   });
   console.log("Database initialized in Vercel KV/Redis mode using REST API.");
+} else if (isTcpMode) {
+  try {
+    redis = new Redis(tcpUrl);
+    console.log("Database initialized in Vercel KV/Redis mode using TCP Client (ioredis).");
+  } catch (err) {
+    console.error("Failed to initialize ioredis connection:", err);
+  }
 } else if (isVercel) {
-  console.warn("Database running on Vercel but KV/Redis REST credentials are not connected yet. Running in safe fallback mode.");
+  console.warn("Database running on Vercel but KV/Redis credentials (REST or TCP) are not connected yet. Running in safe fallback mode.");
 } else {
   console.log("Database initialized in local JSON file mode.");
 }
@@ -80,13 +92,23 @@ export const db = {
         const user = await kv.get(`user:${email.toLowerCase()}`);
         return user || null;
       } catch (error) {
-        console.error("Failed to find user from Vercel KV:", error);
+        console.error("Failed to find user from Vercel KV REST:", error);
+        return null;
+      }
+    }
+    
+    if (isTcpMode && redis) {
+      try {
+        const userStr = await redis.get(`user:${email.toLowerCase()}`);
+        return userStr ? JSON.parse(userStr) : null;
+      } catch (error) {
+        console.error("Failed to find user from Redis TCP:", error);
         return null;
       }
     }
     
     if (isVercel) {
-      console.warn("Vercel KV is not configured. findUserByEmail returning null.");
+      console.warn("Vercel KV/Redis is not configured. findUserByEmail returning null.");
       return null;
     }
     
@@ -119,8 +141,19 @@ export const db = {
       return userResponse;
     }
 
+    if (isTcpMode && redis) {
+      const normalizedEmail = email.toLowerCase();
+      const existingStr = await redis.get(`user:${normalizedEmail}`);
+      if (existingStr) {
+        throw new Error("Email already registered");
+      }
+      await redis.set(`user:${normalizedEmail}`, JSON.stringify(newUser));
+      const { passwordHash: _, salt: __, ...userResponse } = newUser;
+      return userResponse;
+    }
+
     if (isVercel) {
-      throw new Error("Cơ sở dữ liệu Vercel KV chưa được kết nối. Vui lòng kích hoạt trong tab Storage của dự án trên Vercel.");
+      throw new Error("Cơ sở dữ liệu Vercel KV/Redis chưa được kết nối. Vui lòng kích hoạt trong tab Storage của dự án trên Vercel.");
     }
 
     const database = readDb();
@@ -178,12 +211,21 @@ export const db = {
         await kv.lpush(`history:${email.toLowerCase()}`, newEntry);
         return newEntry;
       } catch (error) {
-        console.error("Failed to add history entry to Vercel KV:", error);
+        console.error("Failed to add history entry to Vercel KV REST:", error);
+      }
+    }
+
+    if (isTcpMode && redis) {
+      try {
+        await redis.lpush(`history:${email.toLowerCase()}`, JSON.stringify(newEntry));
+        return newEntry;
+      } catch (error) {
+        console.error("Failed to add history entry to Redis TCP:", error);
       }
     }
 
     if (isVercel) {
-      console.warn("Vercel KV is not configured. addHistoryEntry returning without saving.");
+      console.warn("Vercel KV/Redis is not configured. addHistoryEntry returning without saving.");
       return newEntry;
     }
 
@@ -200,13 +242,23 @@ export const db = {
         const history = await kv.lrange(`history:${email.toLowerCase()}`, 0, -1);
         return history || [];
       } catch (error) {
-        console.error("Failed to get history from Vercel KV:", error);
+        console.error("Failed to get history from Vercel KV REST:", error);
+        return [];
+      }
+    }
+
+    if (isTcpMode && redis) {
+      try {
+        const historyList = await redis.lrange(`history:${email.toLowerCase()}`, 0, -1);
+        return historyList ? historyList.map((item) => JSON.parse(item)) : [];
+      } catch (error) {
+        console.error("Failed to get history from Redis TCP:", error);
         return [];
       }
     }
 
     if (isVercel) {
-      console.warn("Vercel KV is not configured. getHistory returning empty array.");
+      console.warn("Vercel KV/Redis is not configured. getHistory returning empty array.");
       return [];
     }
 
