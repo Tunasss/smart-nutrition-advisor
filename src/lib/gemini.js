@@ -15,6 +15,16 @@ export async function generateAIEstimate({ ageNum, weightNum, heightNum, goal, t
   };
 
   try {
+    const mealThemes = [
+      "traditional Vietnamese home-cooked style (cơm nhà thanh đạm)",
+      "healthy modern Vietnamese fusion style",
+      "easy-to-prepare simple local meals",
+      "nutritious traditional Northern/Central/Southern Vietnamese dishes",
+      "creative local healthy choices",
+    ];
+    const randomTheme = mealThemes[Math.floor(Math.random() * mealThemes.length)];
+    const randomSeed = Math.random().toString(36).substring(2, 9);
+
     const prompt = `You are an expert nutrition advisor. Create a personalized, realistic nutrition plan and a daily meal plan based on the user's profile:
 Age: ${ageNum}
 Weight: ${weightNum} kg
@@ -30,6 +40,8 @@ You must return:
 4. The daily macronutrient targets: protein, carbs, and fat in grams (ensure they align with the calorie target: 1g protein = 4 kcal, 1g carb = 4 kcal, 1g fat = 9 kcal).
 5. A highly customized, tasty Vietnamese or international meal plan consisting of breakfast, lunch, dinner, and a snack.
 - The meals should be realistic, delicious, and aligned with the user's goal.
+- Focus on this specific culinary theme for variety: ${randomTheme}.
+- IMPORTANT: To prevent repetitive suggestions (like always suggesting basic boiled chicken breast), use this variance seed: "${randomSeed}" to inspire unique, creative, and diverse dish choices. Avoid selecting the exact same dishes in consecutive runs.
 - Make sure that the sum of calories and macros of the individual meals (breakfast + lunch + dinner + snack) matches the daily calorie and macronutrient targets as closely as possible.
 - Provide clear names, descriptive ingredients, exact nutrition values per meal, a bulleted list of preparation ingredients or items, and a single suitable emoji for each meal.
 - IMPORTANT: Keep each meal's description extremely concise (maximum 1 sentence, under 15 words) and limit the items list to a maximum of 4 essential entries to speed up response time.`;
@@ -145,6 +157,7 @@ You must return:
               generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: responseSchema,
+                temperature: 1.0,
               },
             }),
           }
