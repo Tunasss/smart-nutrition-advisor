@@ -1,18 +1,28 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import { kv } from "@vercel/kv";
+import { createClient } from "@vercel/kv";
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIR, "database.json");
 
 const isVercel = !!process.env.VERCEL;
-const isKvMode = !!process.env.KV_REST_API_URL;
 
+// Support Vercel KV, Upstash Redis Integration, and direct Upstash credentials
+const restUrl = process.env.KV_REST_API_URL || process.env.REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL;
+const restToken = process.env.KV_REST_API_TOKEN || process.env.REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+const isKvMode = !!restUrl && !!restToken;
+
+let kv = null;
 if (isKvMode) {
-  console.log("Database initialized in Vercel KV mode.");
+  kv = createClient({
+    url: restUrl,
+    token: restToken,
+  });
+  console.log("Database initialized in Vercel KV/Redis mode using REST API.");
 } else if (isVercel) {
-  console.warn("Database running on Vercel but KV is not connected yet. Running in safe fallback mode.");
+  console.warn("Database running on Vercel but KV/Redis REST credentials are not connected yet. Running in safe fallback mode.");
 } else {
   console.log("Database initialized in local JSON file mode.");
 }
