@@ -12,7 +12,7 @@ export async function POST(request) {
       );
     }
 
-    const user = db.verifyUser(email, password);
+    const user = await db.verifyUser(email, password);
     return NextResponse.json({ user }, { status: 200 });
   } catch (error) {
     return NextResponse.json(

@@ -13,7 +13,7 @@ export async function GET(request) {
       );
     }
 
-    const history = db.getHistory(email);
+    const history = await db.getHistory(email);
     return NextResponse.json({ history }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
@@ -42,7 +42,7 @@ export async function POST(request) {
       );
     }
 
-    const entry = db.addHistoryEntry(email, data);
+    const entry = await db.addHistoryEntry(email, data);
     return NextResponse.json({ entry }, { status: 201 });
   } catch (error) {
     return NextResponse.json(

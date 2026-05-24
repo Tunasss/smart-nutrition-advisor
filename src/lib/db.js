@@ -1,11 +1,20 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { kv } from "@vercel/kv";
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIR, "database.json");
 
-// Initialize database file if it doesn't exist
+const isKvMode = !!process.env.KV_REST_API_URL;
+
+if (isKvMode) {
+  console.log("Database initialized in Vercel KV mode.");
+} else {
+  console.log("Database initialized in local JSON file mode.");
+}
+
+// Initialize database file if it doesn't exist (Only used in local JSON file mode)
 function initDb() {
   if (!fs.existsSync(DB_DIR)) {
     fs.mkdirSync(DB_DIR, { recursive: true });
@@ -49,23 +58,23 @@ function hashPassword(password, salt) {
 // Export database operations
 export const db = {
   // Find a user by email
-  findUserByEmail(email) {
+  async findUserByEmail(email) {
+    if (isKvMode) {
+      try {
+        const user = await kv.get(`user:${email.toLowerCase()}`);
+        return user || null;
+      } catch (error) {
+        console.error("Failed to find user from Vercel KV:", error);
+        return null;
+      }
+    }
+    
     const { users } = readDb();
-    return users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    return users.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
   },
 
   // Register a new user
-  registerUser(email, password, name) {
-    const database = readDb();
-    
-    // Check if user already exists
-    const existing = database.users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase()
-    );
-    if (existing) {
-      throw new Error("Email already registered");
-    }
-
+  async registerUser(email, password, name) {
     const salt = crypto.randomBytes(16).toString("hex");
     const passwordHash = hashPassword(password, salt);
     
@@ -78,6 +87,26 @@ export const db = {
       createdAt: new Date().toISOString(),
     };
 
+    if (isKvMode) {
+      const normalizedEmail = email.toLowerCase();
+      const existing = await kv.get(`user:${normalizedEmail}`);
+      if (existing) {
+        throw new Error("Email already registered");
+      }
+      await kv.set(`user:${normalizedEmail}`, newUser);
+      const { passwordHash: _, salt: __, ...userResponse } = newUser;
+      return userResponse;
+    }
+
+    const database = readDb();
+    // Check if user already exists
+    const existing = database.users.find(
+      (u) => u.email.toLowerCase() === email.toLowerCase()
+    );
+    if (existing) {
+      throw new Error("Email already registered");
+    }
+
     database.users.push(newUser);
     writeDb(database);
 
@@ -87,8 +116,8 @@ export const db = {
   },
 
   // Login verification
-  verifyUser(email, password) {
-    const user = this.findUserByEmail(email);
+  async verifyUser(email, password) {
+    const user = await this.findUserByEmail(email);
     if (!user) {
       throw new Error("Invalid email or password");
     }
@@ -104,8 +133,7 @@ export const db = {
   },
 
   // Add a history item for a user
-  addHistoryEntry(email, data) {
-    const database = readDb();
+  async addHistoryEntry(email, data) {
     const newEntry = {
       id: crypto.randomUUID(),
       email: email.toLowerCase(),
@@ -119,13 +147,34 @@ export const db = {
       result: data.result || null,
     };
 
+    if (isKvMode) {
+      try {
+        // Push to the list (Lpush inserts at head so newest is first)
+        await kv.lpush(`history:${email.toLowerCase()}`, newEntry);
+        return newEntry;
+      } catch (error) {
+        console.error("Failed to add history entry to Vercel KV:", error);
+      }
+    }
+
+    const database = readDb();
     database.history.push(newEntry);
     writeDb(database);
     return newEntry;
   },
 
   // Get history list for a user
-  getHistory(email) {
+  async getHistory(email) {
+    if (isKvMode) {
+      try {
+        const history = await kv.lrange(`history:${email.toLowerCase()}`, 0, -1);
+        return history || [];
+      } catch (error) {
+        console.error("Failed to get history from Vercel KV:", error);
+        return [];
+      }
+    }
+
     const { history } = readDb();
     return history
       .filter((h) => h.email.toLowerCase() === email.toLowerCase())

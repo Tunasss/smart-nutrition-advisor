@@ -44,7 +44,7 @@ export async function POST(request) {
     // Check history cache to return immediately if user requests calculation with identical metrics
     if (email) {
       try {
-        const userHistory = db.getHistory(email);
+        const userHistory = await db.getHistory(email);
         const match = userHistory.find(
           (entry) =>
             entry.age === ageNum &&
@@ -121,7 +121,7 @@ export async function POST(request) {
     // Save to user history if email is provided (user is logged in)
     if (email) {
       try {
-        db.addHistoryEntry(email, {
+        await db.addHistoryEntry(email, {
           age: ageNum,
           weight: weightNum,
           height: heightNum,

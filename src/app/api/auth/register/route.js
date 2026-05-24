@@ -19,7 +19,7 @@ export async function POST(request) {
       );
     }
 
-    const user = db.registerUser(email, password, name);
+    const user = await db.registerUser(email, password, name);
     return NextResponse.json({ user }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
